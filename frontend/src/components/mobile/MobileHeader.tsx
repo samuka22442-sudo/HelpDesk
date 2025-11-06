@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { AvatarBadge } from './AvatarBadge';
 import { getNavItemsByRole, MobileNavMenu } from './MobileNavMenu';
 import { MobileUserMenu } from './MobileUserMenu';
+import icMenu from '../../assets/icon/menu.svg';
+import icClose from '../../assets/icon/x.svg';
 
 // Barra superior mobile conforme layout
 // Exibe botão de menu (hamburger/fechar), marca HelpDesk + role, e avatar à direita.
@@ -45,11 +47,9 @@ export function MobileHeader({ role = 'ADMIN', initials = 'UA', onNavigate, onLo
           onClick={toggleNav}
         >
           {navOpen ? (
-            // Ícone de fechar (X)
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.3 5.71L12 12l6.3 6.29-1.41 1.42L12 13.41l-4.89 4.3-1.41-1.42L10.59 12 4.7 6.12 6.11 4.7 12 10.59l4.89-4.88z"></path></svg>
+            <img src={icClose} alt="Fechar" className="w-4 h-4" />
           ) : (
-            // Ícone hambúrguer
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"></path></svg>
+            <img src={icMenu} alt="Menu" className="w-4 h-4" />
           )}
         </button>
 

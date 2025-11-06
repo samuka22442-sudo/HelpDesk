@@ -1,4 +1,6 @@
 import React from 'react';
+import icProfile from '../../assets/icon/circle-user.svg';
+import icLogout from '../../assets/icon/log-out.svg';
 
 export function MobileUserMenu({ open, onProfile, onLogout }: { open: boolean; onProfile: () => void; onLogout: () => void }) {
   if (!open) return null;
@@ -12,7 +14,7 @@ export function MobileUserMenu({ open, onProfile, onLogout }: { open: boolean; o
             onClick={onProfile}
           >
             <span className="text-gray-300">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
+              <img src={icProfile} alt="Perfil" className="w-4 h-4" />
             </span>
             <span className="text-sm text-gray-200">Perfil</span>
           </button>
@@ -23,7 +25,7 @@ export function MobileUserMenu({ open, onProfile, onLogout }: { open: boolean; o
             onClick={onLogout}
           >
             <span className="text-red-400">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M16 13v-2H7V8l-5 4 5 4v-3h9zm3-10H9a2 2 0 00-2 2v3h2V5h10v14H9v-3H7v3a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"></path></svg>
+              <img src={icLogout} alt="Sair" className="w-4 h-4" />
             </span>
             <span className="text-sm text-red-400">Sair</span>
           </button>
