@@ -63,8 +63,16 @@ export async function apiAuthStatus(accessToken?: string): Promise<{ loggedIn: b
 {
   const headers: Record<string, string> = {};
   if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
-  const res = await request('/auth/status', { method: 'GET', headers });
-  return await res.json();
+  try {
+    const res = await request('/auth/status', { method: 'GET', headers });
+    if (!res.ok) return { loggedIn: false };
+    const data = await safeJson(res);
+    if (!data || typeof data.loggedIn !== 'boolean') return { loggedIn: false };
+    return data as { loggedIn: boolean; user?: { id: number; role: 'ADMIN' | 'USER' } };
+  } catch {
+    // Falha de rede/proxy/desligado: assuma não logado
+    return { loggedIn: false };
+  }
 }
 
 async function safeJson(res: Response): Promise<any | null> {
