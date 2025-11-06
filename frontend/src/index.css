@@ -8,4 +8,15 @@
   --color-gray-400: #858B99;
   --color-gray-500: #E3E5E8;
   --color-gray-600: #F9FAFA;
+
+  /* Paleta de marca (Brand) */
+  --color-brand-blue-dark: #2E3DA3;
+  --color-brand-blue-base: #5165E1;
+  --color-brand-blue-light: #8996EB;
+
+  /* Paleta de feedback */
+  --color-feedback-danger: #D03E3E;
+  --color-feedback-open: #CC3D6A;
+  --color-feedback-progress: #355EC5;
+  --color-feedback-done: #508B26;
 }
