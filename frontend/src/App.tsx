@@ -4,6 +4,7 @@ import { DesktopSidebar, MobileHeader } from "./components";
 import { getNavItemsByRole } from "./components/mobile/MobileNavMenu";
 import React, { useMemo, useState } from "react";
 import { ChamadosAdmin } from "./Admin/Chamados";
+import { TecnicosAdmin } from "./Admin/Tecnicos";
 
 export function App() {
   const { user, logout } = useAuth();
@@ -53,7 +54,7 @@ export function App() {
 
         <main className="p-4">
           {view === 'chamados' && <ChamadosAdmin />}
-          {view === 'tecnicos' && <p>Técnicos (em breve)</p>}
+          {view === 'tecnicos' && <TecnicosAdmin />}
           {view === 'clientes' && <p>Clientes (em breve)</p>}
           {view === 'servicos' && <p>Serviços (em breve)</p>}
         </main>
