@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { authenticate, createRegistrationRequest, verifyRegistrationStep1, createSession } from './service';
+import { authenticate, createRegistrationRequest, verifyRegistrationStep1, createSession, findSessionByRefresh, updateSessionToken, deleteSession } from './service';
 import { signAccessToken, signRefreshToken } from '../../utils/jwt';
+import { verifyToken, JwtPayload } from '../../utils/jwt';
 import { sendRegistrationRequestEmail } from '../../email/mailer';
 
 const loginSchema = z.object({ email: z.string().email(), password: z.string().min(6) });
@@ -35,4 +36,43 @@ export async function verifyStep1(req: Request, res: Response) {
   if (!parsed.success) return res.status(400).json({ error: 'Token inválido' });
   const updated = await verifyRegistrationStep1(parsed.data.token);
   res.json({ message: 'Email verificado (etapa 1). Aguarde aprovação do administrador.', requestId: updated.id });
+}
+
+const refreshSchema = z.object({ refreshToken: z.string().min(10) });
+
+export async function refreshToken(req: Request, res: Response) {
+  const parsed = refreshSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Dados inválidos' });
+  const session = await findSessionByRefresh(parsed.data.refreshToken);
+  if (!session) return res.status(401).json({ error: 'Refresh token inválido' });
+  if (new Date(session.expiresAt).getTime() <= Date.now()) {
+    await deleteSession(session.id);
+    return res.status(401).json({ error: 'Refresh token expirado' });
+  }
+  let payload: JwtPayload;
+  try {
+    payload = verifyToken<JwtPayload>(parsed.data.refreshToken);
+  } catch (e) {
+    await deleteSession(session.id);
+    return res.status(401).json({ error: 'Refresh token inválido' });
+  }
+  // Extra segurança: garantir que o token pertence ao usuário da sessão
+  if (String(session.userId) !== payload.sub) {
+    await deleteSession(session.id);
+    return res.status(401).json({ error: 'Token não corresponde ao usuário' });
+  }
+  const newAccessToken = signAccessToken(payload);
+  const newRefreshToken = signRefreshToken(payload);
+  const in7d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  await updateSessionToken(session.id, newRefreshToken, in7d);
+  return res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+}
+
+export async function logout(req: Request, res: Response) {
+  const parsed = refreshSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Dados inválidos' });
+  const session = await findSessionByRefresh(parsed.data.refreshToken);
+  if (!session) return res.status(204).send();
+  await deleteSession(session.id);
+  return res.status(204).send();
 }

@@ -43,3 +43,7 @@ export async function findSessionByRefresh(refreshToken: string) {
 export async function deleteSession(id: number) {
   return prisma.session.delete({ where: { id } });
 }
+
+export async function updateSessionToken(id: number, refreshToken: string, expiresAt: Date) {
+  return prisma.session.update({ where: { id }, data: { refreshToken, expiresAt } });
+}
