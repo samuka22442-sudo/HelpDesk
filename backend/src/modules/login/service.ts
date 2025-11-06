@@ -1,7 +1,10 @@
 import { PrismaClient } from '@prisma/client';
+import dotenv from 'dotenv';
 import { hashPassword, verifyPassword } from '../../utils/password';
 import crypto from 'crypto';
 
+// Garanta que variáveis de ambiente (incluindo DATABASE_URL) estejam carregadas
+dotenv.config({ path: process.cwd() + '/backend/.env' });
 const prisma = new PrismaClient();
 
 export async function authenticate(email: string, password: string) {

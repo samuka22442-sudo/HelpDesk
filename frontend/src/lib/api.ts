@@ -1,7 +1,8 @@
 // Simple API client for HelpDesk frontend
 // Uses cookie-based refresh tokens (credentials: 'include') and JSON content
 
-const DEFAULT_API_BASE = 'http://localhost:4000/api';
+// Em desenvolvimento, use "/api" para aproveitar o proxy do Vite e evitar CORS
+const DEFAULT_API_BASE = '/api';
 export const API_BASE = (import.meta as any).env?.VITE_API_BASE || DEFAULT_API_BASE;
 
 export type LoginResponse = {
@@ -36,10 +37,19 @@ export async function apiLogin(email: string, password: string): Promise<LoginRe
 }
 
 export async function apiLogout(): Promise<void> {
-  const res = await request('/auth/logout', { method: 'POST' });
-  if (!res.ok && res.status !== 204) {
-    const err = await safeJson(res);
-    throw new Error(err?.error || `Logout falhou (${res.status})`);
+  try {
+    const res = await request('/auth/logout', { method: 'POST' });
+    if (!res.ok && res.status !== 204) {
+      const err = await safeJson(res);
+      throw new Error(err?.error || `Logout falhou (${res.status})`);
+    }
+  } catch (e: any) {
+    // Em desenvolvimento, navegacoes ou trocas de rota podem abortar requisições.
+    // Para logout, tratamos erros de rede como sucesso do lado do cliente.
+    if (e?.name === 'AbortError' || String(e)?.includes('ERR_ABORTED')) {
+      return;
+    }
+    console.warn('Falha na requisição de logout, prosseguindo mesmo assim:', e);
   }
 }
 
