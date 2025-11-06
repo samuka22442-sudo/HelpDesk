@@ -1,5 +1,6 @@
 import express from 'express';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { json } from 'express';
@@ -16,6 +17,7 @@ export function createServer() {
   app.use(helmet());
   app.use(cors({ origin: env.CORS_ORIGIN || '*', credentials: true }));
   app.use(json());
+  app.use(cookieParser());
 
   // Rate limit for auth endpoints
   const authLimiter = rateLimit({ windowMs: 60_000, max: 10 });

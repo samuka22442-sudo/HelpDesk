@@ -20,6 +20,13 @@ export async function login(req: Request, res: Response) {
   const refreshToken = signRefreshToken(payload);
   const in7d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   await createSession(user.id, refreshToken, in7d);
+  // Set refresh token in httpOnly cookie for better security (frontend uses accessToken in Authorization header)
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: false, // set true in production with HTTPS
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
   res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
 }
 
@@ -41,9 +48,11 @@ export async function verifyStep1(req: Request, res: Response) {
 const refreshSchema = z.object({ refreshToken: z.string().min(10) });
 
 export async function refreshToken(req: Request, res: Response) {
-  const parsed = refreshSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: 'Dados inválidos' });
-  const session = await findSessionByRefresh(parsed.data.refreshToken);
+  const tokenFromCookie = (req as any).cookies?.refreshToken as string | undefined;
+  const tokenFromBody = refreshSchema.safeParse(req.body).success ? (req.body as any).refreshToken : undefined;
+  const givenRefresh = tokenFromCookie || tokenFromBody;
+  if (!givenRefresh) return res.status(400).json({ error: 'Dados inválidos' });
+  const session = await findSessionByRefresh(givenRefresh);
   if (!session) return res.status(401).json({ error: 'Refresh token inválido' });
   if (new Date(session.expiresAt).getTime() <= Date.now()) {
     await deleteSession(session.id);
@@ -51,7 +60,7 @@ export async function refreshToken(req: Request, res: Response) {
   }
   let payload: JwtPayload;
   try {
-    payload = verifyToken<JwtPayload>(parsed.data.refreshToken);
+    payload = verifyToken<JwtPayload>(givenRefresh);
   } catch (e) {
     await deleteSession(session.id);
     return res.status(401).json({ error: 'Refresh token inválido' });
@@ -65,15 +74,24 @@ export async function refreshToken(req: Request, res: Response) {
   const newRefreshToken = signRefreshToken(payload);
   const in7d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   await updateSessionToken(session.id, newRefreshToken, in7d);
+  res.cookie('refreshToken', newRefreshToken, {
+    httpOnly: true,
+    secure: false, // set true in production with HTTPS
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
   return res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
 }
 
 export async function logout(req: Request, res: Response) {
-  const parsed = refreshSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: 'Dados inválidos' });
-  const session = await findSessionByRefresh(parsed.data.refreshToken);
+  const tokenFromCookie = (req as any).cookies?.refreshToken as string | undefined;
+  const tokenFromBody = refreshSchema.safeParse(req.body).success ? (req.body as any).refreshToken : undefined;
+  const givenRefresh = tokenFromCookie || tokenFromBody;
+  if (!givenRefresh) return res.status(400).json({ error: 'Dados inválidos' });
+  const session = await findSessionByRefresh(givenRefresh);
   if (!session) return res.status(204).send();
   await deleteSession(session.id);
+  res.clearCookie('refreshToken');
   return res.status(204).send();
 }
 
