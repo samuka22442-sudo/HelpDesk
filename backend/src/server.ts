@@ -15,7 +15,10 @@ export function createServer() {
 
   // Security
   app.use(helmet());
-  app.use(cors({ origin: env.CORS_ORIGIN || '*', credentials: true }));
+  // CORS: quando credentials=true, não podemos usar '*'.
+  // Se CORS_ORIGIN não estiver definido, default para http://localhost:5173
+  const allowedOrigins = env.CORS_ORIGIN ? env.CORS_ORIGIN.split(',').map(s => s.trim()) : ['http://localhost:5173'];
+  app.use(cors({ origin: allowedOrigins, credentials: true }));
   app.use(json());
   app.use(cookieParser());
 
