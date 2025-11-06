@@ -1,0 +1,74 @@
+/* Estilos base e variantes para o componente Button */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.625rem; /* 10px aprox */
+  font-weight: 600;
+  transition: transform 120ms ease, background-color 120ms ease, color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  border: 1px solid transparent;
+  user-select: none;
+}
+
+.icon {
+  display: inline-flex;
+  line-height: 0;
+}
+
+.label {
+  display: inline-flex;
+}
+
+.iconGap { gap: 0.5rem; }
+.fullWidth { width: 100%; }
+
+/* Tamanhos */
+.sm { padding: 0.375rem 0.75rem; font-size: 0.875rem; }
+.md { padding: 0.5rem 1rem; font-size: 0.95rem; }
+.lg { padding: 0.75rem 1.25rem; font-size: 1.0625rem; }
+
+/* Variantes */
+.primary {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+  border-color: var(--color-gray-100);
+}
+.primary:hover { background: var(--color-gray-200); border-color: var(--color-gray-200); }
+.primary:active { transform: translateY(1px); }
+.primary:focus { box-shadow: 0 0 0 3px rgba(21,22,25,0.35); }
+
+.secondary {
+  background: var(--color-gray-500);
+  color: var(--color-gray-100);
+  border-color: var(--color-gray-500);
+}
+.secondary:hover { background: #d9dde2; border-color: #d9dde2; }
+.secondary:active { transform: translateY(1px); }
+.secondary:focus { box-shadow: 0 0 0 3px rgba(227,229,232,0.8); }
+
+.highlight {
+  background: var(--color-gray-300);
+  color: var(--color-gray-600);
+  border-color: var(--color-gray-300);
+}
+.highlight:hover { background: #4a505b; border-color: #4a505b; }
+.highlight:active { transform: translateY(1px); }
+.highlight:focus { box-shadow: 0 0 0 3px rgba(83,89,100,0.5); }
+
+.outline {
+  background: transparent;
+  color: var(--color-gray-100);
+  border-color: var(--color-gray-400);
+}
+.outline:hover { background: rgba(133,139,153,0.08); }
+.outline:active { transform: translateY(1px); }
+.outline:focus { box-shadow: 0 0 0 3px rgba(133,139,153,0.35); }
+
+.disabled {
+  background: var(--color-gray-500);
+  color: var(--color-gray-400);
+  border-color: var(--color-gray-500);
+  cursor: not-allowed;
+  opacity: 0.85;
+}
