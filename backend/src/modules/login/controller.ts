@@ -76,3 +76,15 @@ export async function logout(req: Request, res: Response) {
   await deleteSession(session.id);
   return res.status(204).send();
 }
+
+export async function authStatus(req: Request, res: Response) {
+  const auth = req.headers.authorization || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  if (!token) return res.json({ loggedIn: false });
+  try {
+    const payload = verifyToken<JwtPayload>(token);
+    return res.json({ loggedIn: true, user: { id: Number(payload.sub), role: payload.role } });
+  } catch (e) {
+    return res.json({ loggedIn: false });
+  }
+}
