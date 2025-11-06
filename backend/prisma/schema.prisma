@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite connector does not support native enums; use string fields and enforce in application code
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("USER") // USER | ADMIN
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sessions     Session[]
+}
+
+model RegistrationRequest {
+  id               Int                @id @default(autoincrement())
+  email            String             @unique
+  name             String
+  passwordHash     String
+  status           String             @default("PENDING") // PENDING | APPROVED | REJECTED
+  verificationToken String            @unique
+  verifiedStep1    Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  approvedById     Int?
+  approvedAt       DateTime?
+  rejectedById     Int?
+  rejectedAt       DateTime?
+}
+
+model AuditLog {
+  id         Int       @id @default(autoincrement())
+  action     String
+  actorId    Int?
+  actorRole  String?
+  targetEmail String?
+  meta       String?
+  createdAt  DateTime  @default(now())
+}
+
+model Session {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  refreshToken String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}

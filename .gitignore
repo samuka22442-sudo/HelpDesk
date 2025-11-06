@@ -2,6 +2,7 @@
 
 # Node / Vite / React
 node_modules/
+**/node_modules/
 dist/
 dist-ssr/
 *.local
@@ -16,6 +17,7 @@ pnpm-debug.log*
 
 # Environment files
 .env*
+backend/.env
 
 # Editor
 .vscode/*
@@ -32,3 +34,7 @@ coverage/
 out/
 build/
 tmp/
+
+# Prisma sqlite DB
+backend/prisma/dev.db
+backend/prisma/*.db

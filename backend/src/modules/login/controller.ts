@@ -1,0 +1,38 @@
+import { Request, Response } from 'express';
+import { z } from 'zod';
+import { authenticate, createRegistrationRequest, verifyRegistrationStep1, createSession } from './service';
+import { signAccessToken, signRefreshToken } from '../../utils/jwt';
+import { sendRegistrationRequestEmail } from '../../email/mailer';
+
+const loginSchema = z.object({ email: z.string().email(), password: z.string().min(6) });
+const registerSchema = z.object({ name: z.string().min(2), email: z.string().email(), password: z.string().min(6) });
+const verifySchema = z.object({ token: z.string().min(10) });
+
+export async function login(req: Request, res: Response) {
+  const parsed = loginSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Dados inválidos' });
+  const user = await authenticate(parsed.data.email, parsed.data.password);
+  if (!user) return res.status(401).json({ error: 'Credenciais inválidas' });
+  const role = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
+  const payload = { sub: String(user.id), role } as const;
+  const accessToken = signAccessToken(payload);
+  const refreshToken = signRefreshToken(payload);
+  const in7d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  await createSession(user.id, refreshToken, in7d);
+  res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+}
+
+export async function register(req: Request, res: Response) {
+  const parsed = registerSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Dados inválidos' });
+  const reqReg = await createRegistrationRequest(parsed.data.name, parsed.data.email, parsed.data.password);
+  await sendRegistrationRequestEmail(reqReg.email, reqReg.verificationToken);
+  res.status(201).json({ message: 'Solicitação de cadastro enviada. Verifique seu email (etapa 1).', requestId: reqReg.id });
+}
+
+export async function verifyStep1(req: Request, res: Response) {
+  const parsed = verifySchema.safeParse({ token: req.query.token });
+  if (!parsed.success) return res.status(400).json({ error: 'Token inválido' });
+  const updated = await verifyRegistrationStep1(parsed.data.token);
+  res.json({ message: 'Email verificado (etapa 1). Aguarde aprovação do administrador.', requestId: updated.id });
+}
