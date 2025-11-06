@@ -87,7 +87,7 @@ export function Loguin() {
             <div className="mt-4 text-sm text-feedback-danger">{error}</div>
           ) : null}
 
-          <div className="mt-6 rounded-2xl border border-gray-500 p-6">
+          <div className="mt-20 rounded-2xl border border-gray-500 p-6">
             <h2 className="text-sm font-semibold text-gray-200">Ainda não tem uma conta?</h2>
             <p className="text-xs text-gray-300">Cadastre agora mesmo</p>
             <div className="mt-4">

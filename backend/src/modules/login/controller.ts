@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { authenticate, createRegistrationRequest, verifyRegistrationStep1, createSession, findSessionByRefresh, updateSessionToken, deleteSession } from './service';
+import { authenticate, createRegistrationRequest, verifyRegistrationStep1, createSession, findSessionByRefresh, updateSessionToken, deleteSession, getUserById } from './service';
 import { signAccessToken, signRefreshToken } from '../../utils/jwt';
 import { verifyToken, JwtPayload } from '../../utils/jwt';
 import { sendRegistrationRequestEmail } from '../../email/mailer';
@@ -14,6 +14,15 @@ export async function login(req: Request, res: Response) {
   if (!parsed.success) return res.status(400).json({ error: 'Dados inválidos' });
   const user = await authenticate(parsed.data.email, parsed.data.password);
   if (!user) return res.status(401).json({ error: 'Credenciais inválidas' });
+  // Log de login (antes de qualquer outra operação de criação de tokens/sessão)
+  try {
+    const ts = formatTimestamp(new Date());
+    const ip = getClientIp(req);
+    const name = user?.name || 'desconhecido';
+    console.log(`\x1b[32m[${ts}] Usuário ${name} fez login com sucesso (IP: ${ip})\x1b[0m`);
+  } catch (e) {
+    console.warn('Falha ao registrar log de login:', e);
+  }
   const role = user.role === 'ADMIN' ? 'ADMIN' : 'USER';
   const payload = { sub: String(user.id), role } as const;
   const accessToken = signAccessToken(payload);
@@ -89,7 +98,27 @@ export async function logout(req: Request, res: Response) {
   const givenRefresh = tokenFromCookie || tokenFromBody;
   if (!givenRefresh) return res.status(400).json({ error: 'Dados inválidos' });
   const session = await findSessionByRefresh(givenRefresh);
-  if (!session) return res.status(204).send();
+  if (!session) {
+    // Log com tratamento quando não há dados de sessão/usuário
+    try {
+      const ts = formatTimestamp(new Date());
+      const ip = getClientIp(req);
+      console.log(`\x1b[31m[${ts}] Usuário desconhecido fez logout (sessão não encontrada) (IP: ${ip})\x1b[0m`);
+    } catch (e) {
+      console.warn('Falha ao registrar log de logout (sessão ausente):', e);
+    }
+    return res.status(204).send();
+  }
+  // Log de logout antes de apagar sessão e limpar cookie
+  try {
+    const ts = formatTimestamp(new Date());
+    const ip = getClientIp(req);
+    const user = await getUserById(session.userId);
+    const name = user?.name || 'desconhecido';
+    console.log(`\x1b[31m[${ts}] Usuário ${name} fez logout (IP: ${ip})\x1b[0m`);
+  } catch (e) {
+    console.warn('Falha ao registrar log de logout:', e);
+  }
   await deleteSession(session.id);
   res.clearCookie('refreshToken');
   return res.status(204).send();
@@ -105,4 +134,22 @@ export async function authStatus(req: Request, res: Response) {
   } catch (e) {
     return res.json({ loggedIn: false });
   }
+}
+
+// Utilitários de log
+function formatTimestamp(d: Date) {
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${dd}/${mm}/${yyyy} ${hh}:${mi}:${ss}`;
+}
+
+function getClientIp(req: Request) {
+  const xfwd = req.headers['x-forwarded-for'];
+  const forwarded = Array.isArray(xfwd) ? xfwd[0] : (xfwd || '');
+  const ip = forwarded?.toString().split(',')[0].trim();
+  return ip || (req.socket?.remoteAddress || req.ip || '');
 }

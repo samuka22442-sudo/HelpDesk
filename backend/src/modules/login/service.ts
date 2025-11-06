@@ -47,3 +47,7 @@ export async function deleteSession(id: number) {
 export async function updateSessionToken(id: number, refreshToken: string, expiresAt: Date) {
   return prisma.session.update({ where: { id }, data: { refreshToken, expiresAt } });
 }
+
+export async function getUserById(id: number) {
+  return prisma.user.findUnique({ where: { id } });
+}
