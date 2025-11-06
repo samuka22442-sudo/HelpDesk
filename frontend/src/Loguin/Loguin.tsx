@@ -1,6 +1,6 @@
 
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import bgImage from "../assets/Login_Background.png";
 import logo from "../assets/NavHeader.png";
 import Button from "../components/Button";
@@ -13,13 +13,26 @@ export function Loguin() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rememberSession, setRememberSession] = useState<boolean>(true); // manter conectado
+  const [rememberEmail, setRememberEmail] = useState<boolean>(true); // salvar usuário
+
+  // Prefill do e-mail salvo
+  useEffect(() => {
+    try {
+      const remember = localStorage.getItem('helpdesk.rememberEmail') === 'true';
+      const saved = remember ? localStorage.getItem('helpdesk.email') || '' : '';
+      if (saved) setEmail(saved);
+      setRememberEmail(remember);
+      setRememberSession(localStorage.getItem('helpdesk.persist') === 'true');
+    } catch {}
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      await login(email, password);
+      await login(email, password, { rememberSession, rememberEmail });
     } catch (err: any) {
       setError(err?.message || "Falha no login");
     } finally {
@@ -74,7 +87,17 @@ export function Loguin() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </label>
-
+            {/* Opções: manter conectado e salvar usuário */}
+            <div className="flex items-center justify-between pt-2">
+              <label className="flex items-center gap-2 text-[11px] text-gray-300">
+                <input type="checkbox" className="accent-indigo-600" checked={rememberSession} onChange={(e) => setRememberSession(e.target.checked)} />
+                Manter conectado
+              </label>
+              <label className="flex items-center gap-2 text-[11px] text-gray-300">
+                <input type="checkbox" className="accent-indigo-600" checked={rememberEmail} onChange={(e) => setRememberEmail(e.target.checked)} />
+                Salvar usuário
+              </label>
+            </div>
             
           </div>
           <div className="mt-6">
