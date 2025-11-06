@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AvatarBadge } from './AvatarBadge';
-import { DEFAULT_NAV_ITEMS, MobileNavMenu } from './MobileNavMenu';
+import { getNavItemsByRole, MobileNavMenu } from './MobileNavMenu';
 import { MobileUserMenu } from './MobileUserMenu';
 
 // Barra superior mobile conforme layout
@@ -75,7 +75,7 @@ export function MobileHeader({ role = 'ADMIN', initials = 'UA', onNavigate, onLo
 
       {/* Menus abaixo da barra */}
       <div className="px-2">
-        <MobileNavMenu open={navOpen} items={DEFAULT_NAV_ITEMS} onSelect={handleSelect} />
+        <MobileNavMenu open={navOpen} items={getNavItemsByRole(role)} onSelect={handleSelect} />
         <MobileUserMenu open={userOpen} onProfile={() => { setUserOpen(false); onNavigate?.('perfil'); }} onLogout={handleLogout} />
       </div>
     </div>

@@ -23,6 +23,11 @@ function IconServices() {
     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z"></path></svg>
   );
 }
+function IconClients() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 6a3 3 0 110 6 3 3 0 010-6zm6 3a2 2 0 110 4 2 2 0 010-4zM6 9a2 2 0 110 4 2 2 0 010-4zm0 7c-2.21 0-4 1.79-4 4v1h8v-1c0-2.21-1.79-4-4-4zm6 0c-1.48 0-2.8.81-3.5 2.02A4.98 4.98 0 0114 20v1h8v-1c0-2.21-1.79-4-4-4h-4zm-6-7c1.657 0 3-1.343 3-3S7.657 3 6 3 3 4.343 3 6s1.343 3 3 3z"></path></svg>
+  );
+}
 
 export function MobileNavMenu({
   open,
@@ -58,5 +63,13 @@ export function MobileNavMenu({
 export const DEFAULT_NAV_ITEMS: NavItem[] = [
   { key: 'chamados', label: 'Chamados', icon: <IconTicket /> },
   { key: 'tecnicos', label: 'Técnicos', icon: <IconUsers /> },
+  { key: 'clientes', label: 'Clientes', icon: <IconClients /> },
   { key: 'servicos', label: 'Serviços', icon: <IconServices /> },
 ];
+
+// Comentário (PT-BR): Filtra itens conforme o papel do usuário
+export function getNavItemsByRole(role: 'ADMIN' | 'USER'): NavItem[] {
+  if (role === 'ADMIN') return DEFAULT_NAV_ITEMS;
+  // Usuário comum: exibe Chamados e Serviços
+  return DEFAULT_NAV_ITEMS.filter((i) => i.key === 'chamados' || i.key === 'servicos');
+}
